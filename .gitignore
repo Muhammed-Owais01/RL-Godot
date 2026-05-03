@@ -1,0 +1,28 @@
+# Godot
+.godot/
+.import/
+.export/
+.export_presets.cfg
+*.import
+
+# Mono/C# (if enabled)
+.mono/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+
+# Logs and checkpoints
+# rl-training/logs/
+# rl-training/checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+.vscode/

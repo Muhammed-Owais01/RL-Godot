@@ -1,0 +1,7 @@
+stable-baselines3==2.2.1
+torch==2.2.2
+gymnasium==0.29.0
+psutil==5.9.6
+tensorboard==2.14.0
+numpy==1.26.4
+godot-rl==0.8.1

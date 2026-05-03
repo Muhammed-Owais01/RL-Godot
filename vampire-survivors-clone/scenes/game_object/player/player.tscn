@@ -1,0 +1,279 @@
+[gd_scene load_steps=24 format=3 uid="uid://dermboxi5ld4"]
+
+[ext_resource type="Script" path="res://scenes/game_object/player/player.gd" id="1_x14sp"]
+[ext_resource type="PackedScene" uid="uid://bnh7burb0h2aa" path="res://scenes/ability/sword_ability_controller/sword_ability_controller.tscn" id="2_5r485"]
+[ext_resource type="PackedScene" uid="uid://ch0udsxsqb14i" path="res://scenes/component/velocity_component.tscn" id="2_p83nj"]
+[ext_resource type="PackedScene" uid="uid://dw7d0tgixjav7" path="res://scenes/component/random_stream_player_2d_component.tscn" id="2_x5gjg"]
+[ext_resource type="AudioStream" uid="uid://cki3xagyio521" path="res://assets/audio/impactMining_000.ogg" id="3_rdpjg"]
+[ext_resource type="PackedScene" uid="uid://dmegso3kjij1s" path="res://scenes/component/health_component.tscn" id="4_8g6dd"]
+[ext_resource type="AudioStream" uid="uid://r24ed4ifmvgk" path="res://assets/audio/impactMining_001.ogg" id="4_ofvka"]
+[ext_resource type="AudioStream" uid="uid://frkxm5guifff" path="res://assets/audio/impactMining_002.ogg" id="5_jotl6"]
+[ext_resource type="AudioStream" uid="uid://dh38e4wv4f7fc" path="res://assets/audio/impactMining_003.ogg" id="6_kbdsc"]
+[ext_resource type="AudioStream" uid="uid://b3ko521qeo8pm" path="res://assets/audio/impactMining_004.ogg" id="7_g7dbb"]
+[ext_resource type="PackedScene" uid="uid://cr7licrohdkmx" path="res://scenes/component/dash_component.tscn" id="10_nmeis"]
+[ext_resource type="PackedScene" uid="uid://pwibcmv2na4x" path="res://scenes/component/shadow_component.tscn" id="12_d7a52"]
+[ext_resource type="PackedScene" uid="uid://c6ok3qiorsyuj" path="res://scenes/game_object/player/player_texture.tscn" id="13_1xm0l"]
+[ext_resource type="PackedScene" uid="uid://uvsk5gj4gosp" path="res://scenes/ability/dash_ability_controller/dash_ability_controller.tscn" id="13_w8p8k"]
+
+[sub_resource type="Animation" id="Animation_sx8y2"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visuals/PlayerTexture:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visuals/PlayerTexture:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Visuals/PlayerTexture:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_ptytm"]
+resource_name = "dash"
+length = 0.4
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visuals/PlayerTexture:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.4),
+"transitions": PackedFloat32Array(1, 2.54912, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -1), Vector2(2.08165e-12, 2.08165e-12)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visuals/PlayerTexture:scale")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4),
+"transitions": PackedFloat32Array(0.784, 3.24902, 0.8, 0.287175, 2),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.7, 1.4), Vector2(0.7, 0.6), Vector2(0.8, 1), Vector2(1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Visuals/PlayerTexture:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.25, 0.4),
+"transitions": PackedFloat32Array(3.13834, 0.870551, 5.27803, 4.92458),
+"update": 0,
+"values": [-0.0872665, -0.261799, 0.174533, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_sbwug"]
+resource_name = "idle"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visuals/PlayerTexture:scale")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(0.0742701, 0.133972, 0.101531),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.8, 1.05), Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visuals/PlayerTexture:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Visuals/PlayerTexture:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_n64ea"]
+resource_name = "walk"
+length = 0.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visuals/PlayerTexture:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -1), Vector2(2.08165e-12, 2.08165e-12)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visuals/PlayerTexture:rotation")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [0.0, -0.174533, 0.0872665, 3.48787e-16]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Visuals/PlayerTexture:scale")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.3, 0.4),
+"transitions": PackedFloat32Array(0.784, 2.63902, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.8, 1.1), Vector2(1.3, 1), Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_o5ie4"]
+_data = {
+"RESET": SubResource("Animation_sx8y2"),
+"dash": SubResource("Animation_ptytm"),
+"idle": SubResource("Animation_sbwug"),
+"walk": SubResource("Animation_n64ea")
+}
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pnbmn"]
+radius = 32.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5crne"]
+bg_color = Color(0.262745, 0.882353, 0.701961, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.247059, 0.14902, 0.192157, 1)
+corner_detail = 18
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_wo6bm"]
+radius = 7.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1b1s0"]
+radius = 5.0
+
+[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("hurtbox_area") groups=["player"]]
+collision_layer = 2
+motion_mode = 1
+script = ExtResource("1_x14sp")
+hurtbox_area = NodePath("CollisionArea2D")
+
+[node name="HitRandomStreamPlayer" parent="." instance=ExtResource("2_x5gjg")]
+streams = Array[AudioStream]([ExtResource("3_rdpjg"), ExtResource("4_ofvka"), ExtResource("5_jotl6"), ExtResource("6_kbdsc"), ExtResource("7_g7dbb")])
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_o5ie4")
+}
+
+[node name="VelocityComponent" parent="." instance=ExtResource("2_p83nj")]
+max_speed = 90
+acceleration = 30.0
+
+[node name="DashComponent" parent="." instance=ExtResource("10_nmeis")]
+
+[node name="HealthComponent" parent="." instance=ExtResource("4_8g6dd")]
+
+[node name="Abilities" type="Node" parent="."]
+
+[node name="SwordAbilityController" parent="Abilities" instance=ExtResource("2_5r485")]
+
+[node name="DamageIntervalTimer" type="Timer" parent="."]
+wait_time = 0.5
+one_shot = true
+
+[node name="PickupArea" type="Area2D" parent="."]
+visible = false
+position = Vector2(0, -5)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupArea"]
+shape = SubResource("CircleShape2D_pnbmn")
+
+[node name="Visuals" type="Node2D" parent="."]
+
+[node name="ShadowComponent" parent="Visuals" instance=ExtResource("12_d7a52")]
+
+[node name="PlayerTexture" parent="Visuals" instance=ExtResource("13_1xm0l")]
+unique_name_in_owner = true
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+custom_minimum_size = Vector2(32, 6)
+offset_left = -16.0
+offset_top = -23.0
+offset_right = 16.0
+offset_bottom = -17.0
+pivot_offset = Vector2(16, 3)
+theme_override_styles/fill = SubResource("StyleBoxFlat_5crne")
+max_value = 1.0
+value = 0.5
+show_percentage = false
+
+[node name="CollisionArea2D" type="Area2D" parent="."]
+visible = false
+position = Vector2(0, -7)
+collision_layer = 0
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CollisionArea2D"]
+shape = SubResource("CircleShape2D_wo6bm")
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+visible = false
+position = Vector2(0, -5)
+shape = SubResource("CircleShape2D_1b1s0")
+
+[node name="DashEffect" parent="." instance=ExtResource("13_w8p8k")]
+z_index = 1

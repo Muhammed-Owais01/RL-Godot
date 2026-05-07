@@ -23,15 +23,27 @@ class ProgressCallback(BaseCallback):
         self.best_return = float("-inf")
         self.start_time = time.time()
 
-        # CSV logging
-        os.makedirs(log_dir, exist_ok=True)
-        self.csv_path = os.path.join(log_dir, "training_log.csv")
+        # CSV logging (unique per run, incremental)
+        logs_root = os.path.join(log_dir, "training_logs")
+        os.makedirs(logs_root, exist_ok=True)
+        run_idx = self._get_next_run_index(logs_root)
+        self.csv_path = os.path.join(logs_root, f"training_log_{run_idx}.csv")
         self.csv_file = open(self.csv_path, "w", newline="")
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow([
             "episode", "return", "length", "best_return", "total_steps", "elapsed_sec"
         ])
         print(f"[train] Logging to {os.path.abspath(self.csv_path)}", flush=True)
+
+    def _get_next_run_index(self, logs_root: str) -> int:
+        max_idx = 0
+        for name in os.listdir(logs_root):
+            if not name.startswith("training_log_") or not name.endswith(".csv"):
+                continue
+            suffix = name[len("training_log_"):-len(".csv")]
+            if suffix.isdigit():
+                max_idx = max(max_idx, int(suffix))
+        return max_idx + 1
 
     def _on_step(self) -> bool:
         rewards = self.locals.get("rewards")
@@ -99,6 +111,15 @@ def main():
     parser.add_argument("--max-episodes", type=int, default=0)
     parser.add_argument("--resume", default=None, help="Path to saved model to resume training from")
     parser.add_argument("--device", default="auto", help="Device to use for training (cuda, cpu, auto)")
+    parser.add_argument("--learning-rate", type=float, default=3e-4)
+    parser.add_argument("--n-steps", type=int, default=2048)
+    parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument("--n-epochs", type=int, default=10)
+    parser.add_argument("--gamma", type=float, default=0.99)
+    parser.add_argument("--gae-lambda", type=float, default=0.95)
+    parser.add_argument("--clip-range", type=float, default=0.2)
+    parser.add_argument("--ent-coef", type=float, default=0.01)
+    parser.add_argument("--vf-coef", type=float, default=0.5)
     args = parser.parse_args()
 
     os.makedirs("checkpoints", exist_ok=True)
@@ -126,15 +147,15 @@ def main():
         model = PPO(
             "MultiInputPolicy",
             env,
-            learning_rate=3e-4,
-            n_steps=2048,
-            batch_size=128,
-            n_epochs=10,
-            gamma=0.99,
-            gae_lambda=0.95,
-            clip_range=0.2,
-            ent_coef=0.01,
-            vf_coef=0.5,
+            learning_rate=args.learning_rate,
+            n_steps=args.n_steps,
+            batch_size=args.batch_size,
+            n_epochs=args.n_epochs,
+            gamma=args.gamma,
+            gae_lambda=args.gae_lambda,
+            clip_range=args.clip_range,
+            ent_coef=args.ent_coef,
+            vf_coef=args.vf_coef,
             verbose=1,
             tensorboard_log="logs/",
             device=device,

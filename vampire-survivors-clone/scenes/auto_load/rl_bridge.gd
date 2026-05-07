@@ -7,13 +7,13 @@ const OBS_ENEMY_COUNT: int = 4
 const OBS_SIZE: int = 28
 const ARENA_SIZE: Vector2 = Vector2(640, 360)
 
-const REWARD_SURVIVAL: float = 0.01
-const REWARD_DAMAGE_PER_HP: float = -0.9
-const REWARD_KILL: float = 0.4
-const REWARD_WAVE: float = 2.0
+const REWARD_SURVIVAL: float = 0.02
+const REWARD_DAMAGE_PER_HP: float = -0.2
+const REWARD_KILL: float = 0.1
+const REWARD_WAVE: float = 1.0
 const REWARD_WIN: float = 50.0
-const REWARD_DEATH: float = -10.0
-const REWARD_INACTIVITY: float = -0.005
+const REWARD_DEATH: float = -20.0
+const REWARD_INACTIVITY: float = -0.002
 
 var client: StreamPeerTCP
 var is_connected: bool = false
@@ -273,7 +273,7 @@ func compute_reward() -> float:
 			if arena_time_manager.call("is_finished"):
 				reward += REWARD_WIN
 
-	return clamp(reward, -1.0, 1.0)
+	return reward
 
 func get_observation() -> Dictionary:
 	var obs: Array = []

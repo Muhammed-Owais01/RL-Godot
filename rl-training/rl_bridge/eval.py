@@ -17,6 +17,7 @@ def main():
     parser.add_argument("--project-path", required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--base-port", type=int, default=11008)
+    parser.add_argument("--num-envs", type=int, default=1)
     parser.add_argument("--env-path", default=None, help="Path to exported game .exe (optional)")
     parser.add_argument("--show-window", action="store_true")
     parser.add_argument("--episodes", type=int, default=50)
@@ -38,12 +39,12 @@ def main():
     csv_writer.writerow(["episode", "return", "length", "elapsed_sec"])
     print(f"[eval] Logging to {os.path.abspath(csv_path)}", flush=True)
 
-    ports = [args.base_port]
+    ports = [args.base_port + i for i in range(args.num_envs)]
 
     manager = None
     if args.env_path is None:
         manager = ProcessManager(args.godot_exe, args.project_path, base_port=args.base_port)
-        manager.start(1, show_window=args.show_window)
+        manager.start(args.num_envs, show_window=args.show_window)
 
     env = GodotVecEnv(ports=ports, env_path=args.env_path, show_window=args.show_window)
     model = PPO.load(args.model)
@@ -51,23 +52,36 @@ def main():
     rewards = []
     wins = 0
     start_time = time.time()
-    for ep_idx in range(1, args.episodes + 1):
-        obs = env.reset()
-        done = False
-        total = 0.0
-        length = 0
-        while not done:
-            action, _ = model.predict(obs, deterministic=True)
-            obs, reward, done, info = env.step(action)
-            total += float(reward[0])
-            length += 1
-        rewards.append(total)
-        if total > 0:
-            wins += 1
+    obs = env.reset()
+    num_envs = env.num_envs
+    ep_returns = [0.0] * num_envs
+    ep_lengths = [0] * num_envs
+    episodes_done = 0
+    while episodes_done < args.episodes:
+        action, _ = model.predict(obs, deterministic=True)
+        obs, reward, done, info = env.step(action)
+        for i in range(num_envs):
+            ep_returns[i] += float(reward[i])
+            ep_lengths[i] += 1
+            if done[i]:
+                episodes_done += 1
+                total = ep_returns[i]
+                length = ep_lengths[i]
+                rewards.append(total)
+                if total > 0:
+                    wins += 1
 
-        elapsed = time.time() - start_time
-        csv_writer.writerow([ep_idx, f"{total:.2f}", length, f"{elapsed:.1f}"])
-        csv_file.flush()
+                elapsed = time.time() - start_time
+                csv_writer.writerow([episodes_done, f"{total:.2f}", length, f"{elapsed:.1f}"])
+                csv_file.flush()
+
+                ep_returns[i] = 0.0
+                ep_lengths[i] = 0
+                if episodes_done >= args.episodes:
+                    break
+
+        if episodes_done >= args.episodes:
+            break
 
     print(f"Avg reward: {np.mean(rewards):.2f}")
     print(f"Win rate: {wins / args.episodes:.2f}")

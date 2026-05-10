@@ -107,6 +107,7 @@ def main():
     parser.add_argument("--base-port", type=int, default=11008)
     parser.add_argument("--env-path", default=None, help="Path to exported game .exe (optional)")
     parser.add_argument("--show-window", action="store_true")
+    parser.add_argument("--speedup", type=int, default=None)
     parser.add_argument("--total-steps", type=int, default=2_000_000)
     parser.add_argument("--max-episodes", type=int, default=0)
     parser.add_argument("--resume", default=None, help="Path to saved model to resume training from")
@@ -131,7 +132,12 @@ def main():
         manager = ProcessManager(args.godot_exe, args.project_path, base_port=args.base_port)
         manager.start(args.num_envs, show_window=args.show_window)
 
-    env = GodotVecEnv(ports=ports, env_path=args.env_path, show_window=args.show_window)
+    env = GodotVecEnv(
+        ports=ports,
+        env_path=args.env_path,
+        show_window=args.show_window,
+        speedup=args.speedup,
+    )
 
     # Device selection
     if args.device == "auto":

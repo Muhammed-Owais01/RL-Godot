@@ -19,6 +19,7 @@ def main():
     parser.add_argument("--base-port", type=int, default=11008)
     parser.add_argument("--env-path", default=None, help="Path to exported game .exe (optional)")
     parser.add_argument("--show-window", action="store_true")
+    parser.add_argument("--speedup", type=int, default=None)
     parser.add_argument("--episodes", type=int, default=50)
     args = parser.parse_args()
 
@@ -45,7 +46,12 @@ def main():
         manager = ProcessManager(args.godot_exe, args.project_path, base_port=args.base_port)
         manager.start(1, show_window=args.show_window)
 
-    env = GodotVecEnv(ports=ports, env_path=args.env_path, show_window=args.show_window)
+    env = GodotVecEnv(
+        ports=ports,
+        env_path=args.env_path,
+        show_window=args.show_window,
+        speedup=args.speedup,
+    )
     model = PPO.load(args.model)
 
     rewards = []

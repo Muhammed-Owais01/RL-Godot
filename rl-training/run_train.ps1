@@ -6,7 +6,8 @@ param(
     [string]$Resume = "checkpoints/best_model",
     [float]$EntCoef = 0.03,
     [int]$NSteps = 1024,
-    [float]$ClipRange = 0.15
+    [float]$ClipRange = 0.15,
+    [int]$Speedup = 4
 )
 
 Set-Location -Path $PSScriptRoot
@@ -18,5 +19,6 @@ python -m rl_bridge.train `
     --max-episodes $MaxEpisodes `
     --ent-coef $EntCoef `
     --n-steps $NSteps `
-    --clip-range $ClipRange
+    --clip-range $ClipRange `
+    --speedup $Speedup
     # --resume "$Resume" `

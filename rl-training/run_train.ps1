@@ -16,7 +16,7 @@ python -m rl_bridge.train `
     --project-path "$ProjectPath" `
     --num-envs $NumEnvs `
     --max-episodes $MaxEpisodes `
-    --resume "$Resume" `
     --ent-coef $EntCoef `
     --n-steps $NSteps `
     --clip-range $ClipRange
+    # --resume "$Resume" `

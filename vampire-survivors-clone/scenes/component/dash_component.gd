@@ -4,15 +4,22 @@ class_name DashComponent
 @export var dash_effect_scene: PackedScene
 @export var	acceleration: float = 50
 @export var speed: int = 250
+@export var cooldown_total: float = 0.6
 
 var dashing = false
 var can_dash = true
+var cooldown_left: float = 0.0
+
+func _process(delta: float) -> void:
+	if cooldown_left > 0.0:
+		cooldown_left = max(cooldown_left - delta, 0.0)
 
 func _input(event: InputEvent):
 	var entity: Player = owner
 	if event.is_action_pressed('dash') and allow_dash():
 		dashing = true
 		can_dash = false
+		cooldown_left = cooldown_total
 		
 		play_effect()
 		entity.animation_player.play('dash')
@@ -21,6 +28,11 @@ func _input(event: InputEvent):
 		dashing = false
 		await get_tree().create_timer(0.2).timeout
 		can_dash = true
+
+func get_cooldown_ratio() -> float:
+	if cooldown_total <= 0.0:
+		return 0.0
+	return clamp(cooldown_left / cooldown_total, 0.0, 1.0)
 
 func play_effect() -> void:
 	var dash_effect: Node2D = dash_effect_scene.instantiate()

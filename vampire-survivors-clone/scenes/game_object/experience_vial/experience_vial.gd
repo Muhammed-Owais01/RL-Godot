@@ -6,6 +6,7 @@ extends Node2D
 @onready var random_stream: RandomStreamPlayer2DComponent = $RandomStreamPlayer2DComponent
 
 func _ready():
+	add_to_group("experience_vial")
 	area_range.area_entered.connect(on_area_entered)
 
 func tween_collect(percent: float, start_position: Vector2):

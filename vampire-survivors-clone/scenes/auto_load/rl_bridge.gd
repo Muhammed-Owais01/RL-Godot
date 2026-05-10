@@ -4,8 +4,9 @@ const DEFAULT_PORT: int = 11008
 const CONNECT_RETRY_MS: int = 500
 const INITIAL_CONNECT_DELAY_MS: int = 750
 const OBS_ENEMY_COUNT: int = 4
-const OBS_SIZE: int = 28
+const OBS_SIZE: int = 43
 const ARENA_SIZE: Vector2 = Vector2(640, 360)
+const ARENA_DIAGONAL: float = 730.0
 
 const REWARD_SURVIVAL: float = 0.02
 const REWARD_DAMAGE_PER_HP: float = -0.2
@@ -23,7 +24,11 @@ var connect_ready_ms: int = 0
 
 var arena_time_manager: ArenaTimeManager
 var enemy_manager: Node
+var experience_manager: Node
+var upgrade_manager: Node
 var player: Node2D
+var dash_component: Node
+var sword_controller: Node
 
 var episode_total_reward: float = 0.0
 var episode_step_count: int = 0
@@ -221,6 +226,16 @@ func _internal_reset() -> void:
 			
 	arena_time_manager = find_node_by_class("ArenaTimeManager")
 	enemy_manager = find_node_by_name("EnemyManager")
+	experience_manager = find_node_by_name("ExperienceManager")
+	upgrade_manager = find_node_by_name("UpgradeManager")
+	if player and player.has_node("DashComponent"):
+		dash_component = player.get_node("DashComponent")
+	else:
+		dash_component = null
+	if player and player.has_node("Abilities/SwordAbilityController"):
+		sword_controller = player.get_node("Abilities/SwordAbilityController")
+	else:
+		sword_controller = null
 	
 	previous_health = get_player_health()
 	previous_enemy_count = get_enemy_count()
@@ -303,6 +318,39 @@ func get_observation() -> Dictionary:
 	var waves_cleared = float(min(get_arena_difficulty(), 12)) / 12.0
 	obs.append(clamp(waves_cleared, 0.0, 1.0))
 
+	var can_dash_val = 0.0
+	var dashing_val = 0.0
+	var dash_cooldown_ratio = 0.0
+	if dash_component:
+		can_dash_val = 1.0 if dash_component.can_dash else 0.0
+		dashing_val = 1.0 if dash_component.dashing else 0.0
+		if dash_component.has_method("get_cooldown_ratio"):
+			dash_cooldown_ratio = float(dash_component.call("get_cooldown_ratio"))
+	obs.append(can_dash_val)
+	obs.append(dashing_val)
+	obs.append(clamp(dash_cooldown_ratio, 0.0, 1.0))
+
+	var level_norm = 0.0
+	var xp_progress = 0.0
+	if experience_manager:
+		level_norm = clamp(float(experience_manager.current_level) / 50.0, 0.0, 1.0)
+		if experience_manager.target_experience > 0:
+			xp_progress = clamp(float(experience_manager.current_experience) / float(experience_manager.target_experience), 0.0, 1.0)
+	obs.append(level_norm)
+	obs.append(xp_progress)
+
+	obs.append(_get_upgrade_ratio("sword_rate"))
+	obs.append(_get_upgrade_ratio("sword_damage"))
+	obs.append(_get_upgrade_ratio("axe_damage"))
+	obs.append(_get_upgrade_ratio("player_speed"))
+
+	var sword_cooldown_ratio = 0.0
+	if sword_controller and sword_controller.has_node("Timer"):
+		var sword_timer: Timer = sword_controller.get_node("Timer") as Timer
+		if sword_timer and sword_timer.wait_time > 0.0:
+			sword_cooldown_ratio = clamp(float(sword_timer.time_left) / float(sword_timer.wait_time), 0.0, 1.0)
+	obs.append(sword_cooldown_ratio)
+
 	var enemies = get_tree().get_nodes_in_group("enemy")
 	var sorted_enemies: Array = []
 	for enemy in enemies:
@@ -311,6 +359,39 @@ func get_observation() -> Dictionary:
 			sorted_enemies.append({"enemy": enemy, "distance": dist})
 
 	sorted_enemies.sort_custom(func(a, b): return a.distance < b.distance)
+
+	var enemy_count_norm = clamp(float(enemies.size()) / 50.0, 0.0, 1.0)
+	var mean_near_dist = 0.0
+	if sorted_enemies.size() > 0:
+		var sample_count = min(OBS_ENEMY_COUNT, sorted_enemies.size())
+		for i in range(sample_count):
+			mean_near_dist += float(sorted_enemies[i].distance)
+		mean_near_dist /= float(sample_count)
+	var mean_near_dist_norm = clamp(mean_near_dist / ARENA_DIAGONAL, 0.0, 1.0)
+	obs.append(enemy_count_norm)
+	obs.append(mean_near_dist_norm)
+
+	var vial_rel_x = 0.0
+	var vial_rel_y = 0.0
+	var vial_dist_norm = 0.0
+	var vials = get_tree().get_nodes_in_group("experience_vial")
+	if vials.size() > 0:
+		var best_dist = INF
+		var best_vial: Node2D = null
+		for vial in vials:
+			if vial is Node2D:
+				var vdist = player.global_position.distance_to(vial.global_position)
+				if vdist < best_dist:
+					best_dist = vdist
+					best_vial = vial
+		if best_vial:
+			var rel_pos = (best_vial.global_position - player.global_position) / ARENA_SIZE
+			vial_rel_x = clamp(rel_pos.x, -1.0, 1.0)
+			vial_rel_y = clamp(rel_pos.y, -1.0, 1.0)
+			vial_dist_norm = clamp(best_dist / ARENA_DIAGONAL, 0.0, 1.0)
+	obs.append(vial_rel_x)
+	obs.append(vial_rel_y)
+	obs.append(vial_dist_norm)
 
 	for i in range(OBS_ENEMY_COUNT):
 		if i < sorted_enemies.size():
@@ -334,6 +415,20 @@ func get_observation() -> Dictionary:
 			obs.append(0.0)
 
 	return {"obs": obs}
+
+func _get_upgrade_ratio(upgrade_id: String) -> float:
+	if upgrade_manager == null:
+		return 0.0
+	if not upgrade_manager.current_upgrades.has(upgrade_id):
+		return 0.0
+	var entry = upgrade_manager.current_upgrades[upgrade_id]
+	var quantity = float(entry.get("quantity", 0))
+	var resource = entry.get("resource", null)
+	if resource and resource.has_method("get"):
+		var max_qty = float(resource.get("max_quantity"))
+		if max_qty > 0.0:
+			return clamp(quantity / max_qty, 0.0, 1.0)
+	return clamp(quantity / 5.0, 0.0, 1.0)
 
 func send_json(data: Dictionary) -> void:
 	var json_str = JSON.stringify(data)
